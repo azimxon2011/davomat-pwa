@@ -24,9 +24,9 @@ export function AttendanceFooter({ stats, onSendTelegram }: AttendanceFooterProp
         <button
           type="button"
           onClick={onSendTelegram}
-          className="h-10 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 active:scale-[0.98] transition shrink-0"
+          className="h-10 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 active:scale-[0.98] transition shrink-0"
         >
-          Telegramga yuborish
+          Yuborish
         </button>
       </div>
     </div>

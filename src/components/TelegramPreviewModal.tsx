@@ -1,11 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import {
-  hasTelegramBotConfig,
-  openTelegramShare,
-  sendToTelegramBot,
-} from '../utils/telegram';
-import { downloadExcelBytes } from '../utils/excelUpdater';
+import { sendToTelegramBot } from '../utils/telegram';
 
 interface TelegramPreviewModalProps {
   open: boolean;
@@ -26,30 +21,16 @@ export function TelegramPreviewModal({
   onClose,
   onNotify,
 }: TelegramPreviewModalProps) {
-  const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
 
   if (!open) return null;
-
-  const hasBot = hasTelegramBotConfig();
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      onNotify('Nusxalandi');
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      onNotify('Nusxalab boʻlmadi', 'error');
-    }
-  };
 
   const handleBotSend = async () => {
     setSending(true);
     const res = await sendToTelegramBot(text, excelBytes ?? undefined, date);
     setSending(false);
     if (res.ok) {
-      onNotify('Hisobot va DAVOMAT.xlsx Telegramga yuborildi!');
+      onNotify('Yuborildi');
       onClose();
     } else {
       onNotify(res.error || 'Yuborishda xatolik', 'error');
@@ -82,47 +63,15 @@ export function TelegramPreviewModal({
           </pre>
         </div>
 
-        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2 safe-bottom">
-          {hasBot && (
-            <button
-              type="button"
-              disabled={sending}
-              onClick={handleBotSend}
-              className="w-full h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold text-sm shadow-sm shadow-indigo-600/20 disabled:opacity-50 transition"
-            >
-              {sending ? 'Yuborilmoqda...' : 'Telegram bot orqali yuborish (+ DAVOMAT.xlsx)'}
-            </button>
-          )}
-
-          {excelBytes && (
-            <button
-              type="button"
-              onClick={() => {
-                downloadExcelBytes(excelBytes, 'DAVOMAT.xlsx');
-                onNotify('DAVOMAT.xlsx yuklab olindi');
-              }}
-              className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition"
-            >
-              DAVOMAT.xlsx yuklab olish (yangilangan)
-            </button>
-          )}
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => openTelegramShare(text)}
-              className="h-10 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-medium text-sm"
-            >
-              Telegramda ulashish
-            </button>
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="h-10 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-medium text-sm"
-            >
-              {copied ? 'Nusxalandi' : 'Nusxalash'}
-            </button>
-          </div>
+        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 safe-bottom">
+          <button
+            type="button"
+            disabled={sending}
+            onClick={handleBotSend}
+            className="w-full h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold text-sm shadow-sm shadow-indigo-600/20 disabled:opacity-50 transition"
+          >
+            {sending ? 'Yuborilmoqda...' : 'Yuborish'}
+          </button>
         </div>
       </div>
     </div>

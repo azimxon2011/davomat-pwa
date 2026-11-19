@@ -52,18 +52,17 @@ export function hasTelegramBotConfig(): boolean {
 }
 
 async function resolveTargetChatIds(token: string): Promise<string[]> {
-  const botId = token.split(':')[0];
   const configured = TELEGRAM_CONFIG.chatId.trim();
   const chatSet = new Set<string>();
 
-  if (configured && configured !== botId) {
+  if (configured) {
     chatSet.add(configured);
   }
 
   try {
     const cached = JSON.parse(localStorage.getItem('davomat_tg_chats') || '[]') as string[];
     cached.forEach((id) => {
-      if (id && id !== botId) chatSet.add(String(id));
+      if (id) chatSet.add(String(id));
     });
   } catch {
     // ignore
@@ -78,7 +77,7 @@ async function resolveTargetChatIds(token: string): Promise<string[]> {
           upd?.message?.chat?.id ??
           upd?.my_chat_member?.chat?.id ??
           upd?.channel_post?.chat?.id;
-        if (chatId && String(chatId) !== botId) {
+        if (chatId) {
           chatSet.add(String(chatId));
         }
       }
