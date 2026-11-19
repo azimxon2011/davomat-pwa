@@ -9,8 +9,8 @@ export function Toast({ toast }: { toast: ToastMessage | null }) {
 
   const styles =
     toast.type === 'error'
-      ? 'bg-red-600 text-white'
-      : 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950';
+      ? 'bg-rose-600 text-white shadow-rose-600/25'
+      : 'bg-emerald-600 text-white shadow-emerald-600/25';
 
   return (
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm pointer-events-none">

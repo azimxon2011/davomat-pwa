@@ -7,18 +7,24 @@ interface AttendanceFooterProps {
 
 export function AttendanceFooter({ stats, onSendTelegram }: AttendanceFooterProps) {
   return (
-    <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800 safe-bottom">
+    <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-indigo-100 dark:border-zinc-800 safe-bottom">
       <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 text-xs font-medium text-zinc-600 dark:text-zinc-400 tabular-nums">
-          <span>Keldi: {stats.present}</span>
-          <span className="text-red-600 dark:text-red-400">Kelmadi: {stats.absent}</span>
-          <span className="text-amber-600 dark:text-amber-400">Kechikdi: {stats.late}</span>
+        <div className="flex items-center gap-1.5 text-xs font-semibold tabular-nums">
+          <span className="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+            Keldi: {stats.present}
+          </span>
+          <span className="px-2 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+            Yoʻq: {stats.absent}
+          </span>
+          <span className="px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+            Kech: {stats.late}
+          </span>
         </div>
 
         <button
           type="button"
           onClick={onSendTelegram}
-          className="h-10 px-4 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 text-xs font-semibold shrink-0"
+          className="h-10 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 active:scale-[0.98] transition shrink-0"
         >
           Telegramga yuborish
         </button>

@@ -95,7 +95,7 @@ export function NoteModal({
               onSave(status, reason.trim());
               onClose();
             }}
-            className="w-full h-10 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 font-medium text-sm safe-bottom"
+            className="w-full h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold text-sm shadow-sm shadow-indigo-600/20 safe-bottom transition"
           >
             Saqlash
           </button>

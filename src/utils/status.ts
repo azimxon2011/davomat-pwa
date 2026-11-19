@@ -11,19 +11,19 @@ export const STATUS_LIST: StatusMeta[] = [
     id: 'present',
     label: 'Keldi',
     activeClass:
-      'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950',
+      'bg-emerald-600 text-white shadow-xs shadow-emerald-600/25',
   },
   {
     id: 'absent',
     label: 'Kelmadi',
     activeClass:
-      'bg-red-600 text-white dark:bg-red-500 dark:text-white',
+      'bg-rose-600 text-white shadow-xs shadow-rose-600/25',
   },
   {
     id: 'late',
     label: 'Kechikdi',
     activeClass:
-      'bg-amber-600 text-white dark:bg-amber-500 dark:text-zinc-950',
+      'bg-amber-500 text-white shadow-xs shadow-amber-500/25',
   },
 ];
 

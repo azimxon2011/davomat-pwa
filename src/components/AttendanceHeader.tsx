@@ -46,7 +46,7 @@ export function AttendanceHeader({
         <button
           type="button"
           onClick={onAllPresent}
-          className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-medium shrink-0"
+          className="h-9 px-3 rounded-lg border border-emerald-200 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold shrink-0 transition"
         >
           Hammasi keldi
         </button>
@@ -55,19 +55,19 @@ export function AttendanceHeader({
       <div className="flex items-center gap-1.5 text-xs">
         {(
           [
-            ['all', `Barchasi (${stats.total})`],
-            ['absent', `Kelmaganlar (${stats.absent})`],
-            ['late', `Kechikkanlar (${stats.late})`],
+            ['all', `Barchasi (${stats.total})`, 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/20'],
+            ['absent', `Kelmaganlar (${stats.absent})`, 'bg-rose-600 text-white shadow-xs shadow-rose-600/20'],
+            ['late', `Kechikkanlar (${stats.late})`, 'bg-amber-500 text-white shadow-xs shadow-amber-500/20'],
           ] as const
-        ).map(([id, label]) => (
+        ).map(([id, label, activeCls]) => (
           <button
             key={id}
             type="button"
             onClick={() => onFilterChange(id)}
-            className={`px-2.5 py-1 rounded-md font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-semibold transition ${
               filter === id
-                ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950'
-                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800'
+                ? activeCls
+                : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-indigo-300'
             }`}
           >
             {label}
