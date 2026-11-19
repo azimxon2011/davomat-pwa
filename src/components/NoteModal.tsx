@@ -1,23 +1,14 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { AttendanceStatus } from '../types';
-import { STATUS_LIST } from '../utils/status';
-
-const QUICK_NOTES = [
-  'Harorati bor',
-  'Shifokorda',
-  'Ota-onasi xabar berdi',
-  '10 daqiqa kechikdi',
-  'Olimpiada / tadbirda',
-  'Telefon koʻtarmayapti',
-];
+import { ABSENT_REASONS } from '../utils/status';
 
 interface NoteModalProps {
   open: boolean;
   studentName: string;
   status: AttendanceStatus;
-  initialNote: string;
-  onSave: (status: AttendanceStatus, note: string) => void;
+  initialReason: string;
+  onSave: (status: AttendanceStatus, reason: string) => void;
   onClose: () => void;
 }
 
@@ -25,19 +16,19 @@ export function NoteModal({
   open,
   studentName,
   status,
-  initialNote,
+  initialReason,
   onSave,
   onClose,
 }: NoteModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState<AttendanceStatus>(status);
-  const [note, setNote] = useState(initialNote);
+  const [reason, setReason] = useState(initialReason);
 
   useEffect(() => {
-    setSelectedStatus(status);
-    setNote(initialNote);
-  }, [status, initialNote, open]);
+    setReason(initialReason);
+  }, [initialReason, open]);
 
   if (!open) return null;
+
+  const isLate = status === 'late';
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/55 backdrop-blur-xs p-0 sm:p-4">
@@ -48,7 +39,9 @@ export function NoteModal({
               {studentName}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Holat va sabab izohini kiriting
+              {isLate
+                ? 'Kechikish izohi (ixtiyoriy)'
+                : 'Kelmaganlik sababini tanlang yoki yozing'}
             </p>
           </div>
           <button
@@ -61,57 +54,53 @@ export function NoteModal({
         </div>
 
         <div className="p-5 space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            {STATUS_LIST.map((st) => {
-              const active = selectedStatus === st.id;
-              return (
-                <button
-                  key={st.id}
-                  type="button"
-                  onClick={() => setSelectedStatus(st.id)}
-                  className={`h-10 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-                    active
-                      ? st.pillActiveClass
-                      : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
-                  }`}
-                >
-                  <span>{st.emoji}</span>
-                  <span>{st.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          {!isLate && (
+            <div className="grid grid-cols-2 gap-2">
+              {ABSENT_REASONS.map((item) => {
+                const active = reason.trim() === item.label;
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      onSave('absent', item.label);
+                      onClose();
+                    }}
+                    className={`h-11 px-3 rounded-2xl border text-xs font-bold flex items-center gap-2 transition active:scale-95 ${
+                      active
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-400'
+                    }`}
+                  >
+                    <span className="text-base">{item.emoji}</span>
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
-              Izoh (ixtiyoriy)
+              {isLate ? 'Izoh' : 'Yoki oʻz sababingizni yozing'}
             </label>
             <input
               type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Masalan: Harorati bor, onasi xabar berdi..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder={
+                isLate
+                  ? 'Masalan: 10 daqiqa kechikdi...'
+                  : 'Masalan: Musobaqaga ketgan...'
+              }
               className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500"
             />
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            {QUICK_NOTES.map((chip) => (
-              <button
-                key={chip}
-                type="button"
-                onClick={() => setNote(chip)}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-teal-950/60 dark:hover:text-teal-300 transition"
-              >
-                {chip}
-              </button>
-            ))}
           </div>
 
           <button
             type="button"
             onClick={() => {
-              onSave(selectedStatus, note.trim());
+              onSave(status, reason.trim());
               onClose();
             }}
             className="w-full h-12 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-md shadow-teal-600/20 active:scale-[0.99] transition safe-bottom"

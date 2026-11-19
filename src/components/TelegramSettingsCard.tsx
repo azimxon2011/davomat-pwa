@@ -17,7 +17,7 @@ export function TelegramSettingsCard({ settings, onChange, onNotify }: Props) {
     const res = await sendToTelegramBot(
       settings.telegramBotToken,
       settings.telegramChatId,
-      `✅ «Davomat» PWA ilovasi muvaffaqiyatli ulandi!\n🏫 ${settings.schoolName}`
+      `✅ «Davomat» PWA ilovasi muvaffaqiyatli ulandi!`
     );
     setTesting(false);
     if (res.ok) onNotify('Sinov xabari Telegramga yuborildi!');

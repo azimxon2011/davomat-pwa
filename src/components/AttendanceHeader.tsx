@@ -1,12 +1,14 @@
 import { CheckCheck, CheckCircle2, Search, X } from 'lucide-react';
-import { ClassGroup, ClassReport } from '../types';
+import { ClassGroup, ClassReport, TeacherProfile } from '../types';
 import { ClassStats } from '../utils/status';
-import { formatTimeShort } from '../utils/uzbekDate';
+import { formatTimeShort, formatUzbekDate } from '../utils/uzbekDate';
 
 export type FilterMode = 'all' | 'absent' | 'late';
 
 interface AttendanceHeaderProps {
   currentClass: ClassGroup;
+  teacher: TeacherProfile;
+  date: string;
   existingReport?: ClassReport;
   stats: ClassStats;
   search: string;
@@ -18,6 +20,8 @@ interface AttendanceHeaderProps {
 
 export function AttendanceHeader({
   currentClass,
+  teacher,
+  date,
   existingReport,
   stats,
   search,
@@ -30,16 +34,11 @@ export function AttendanceHeader({
     <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-3">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
-              {currentClass.name} sinf
-            </h2>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-              {currentClass.shift}
-            </span>
-          </div>
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
+            {currentClass.name} sinf · {formatUzbekDate(date)}
+          </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Sinf rahbari: {currentClass.curatorName}
+            Sinf rahbari: {teacher.fullName}
           </p>
         </div>
 
@@ -90,7 +89,7 @@ export function AttendanceHeader({
         {(
           [
             ['all', `Barchasi (${stats.total})`],
-            ['absent', `Kelmaganlar (${stats.absentTotal})`],
+            ['absent', `Kelmaganlar (${stats.absent})`],
             ['late', `Kechikkanlar (${stats.late})`],
           ] as const
         ).map(([id, label]) => (

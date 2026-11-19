@@ -1,11 +1,12 @@
-import { Monitor, Moon, RotateCcw, School, Smartphone, Sun } from 'lucide-react';
-import { AppSettings } from '../types';
+import { Lock, Monitor, Moon, Smartphone, Sun, User } from 'lucide-react';
+import { AppSettings, TeacherProfile } from '../types';
 import { TelegramSettingsCard } from '../components/TelegramSettingsCard';
 
 interface SettingsViewProps {
+  teacher: TeacherProfile;
+  classNameLabel: string;
   settings: AppSettings;
   onChange: (next: AppSettings) => void;
-  onResetDemo: () => void;
   canInstall: boolean;
   isInstalled: boolean;
   onInstallApp: () => void;
@@ -13,9 +14,10 @@ interface SettingsViewProps {
 }
 
 export function SettingsView({
+  teacher,
+  classNameLabel,
   settings,
   onChange,
-  onResetDemo,
   canInstall,
   isInstalled,
   onInstallApp,
@@ -26,8 +28,37 @@ export function SettingsView({
       <div>
         <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Sozlamalar</h2>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Maktab maʼlumotlari, Telegram integratsiyasi va koʻrinish
+          Profil maʼlumotlari, Telegram integratsiyasi va koʻrinish
         </p>
+      </div>
+
+      {/* Locked teacher profile */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <User className="w-4 h-4 text-teal-600" />
+            Sinf rahbari profili
+          </h3>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <Lock className="w-3 h-3" />
+            Biriktirilgan
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5 text-xs">
+          <div className="rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/70 dark:border-slate-800 p-3">
+            <p className="text-slate-500 dark:text-slate-400">Ism va familiya</p>
+            <p className="font-bold text-slate-900 dark:text-white mt-0.5 truncate">
+              {teacher.fullName}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/70 dark:border-slate-800 p-3">
+            <p className="text-slate-500 dark:text-slate-400">Biriktirilgan sinf</p>
+            <p className="font-extrabold text-teal-600 dark:text-teal-400 mt-0.5">
+              {classNameLabel} sinf
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 flex items-center justify-between gap-3">
@@ -53,37 +84,6 @@ export function SettingsView({
             Oʻrnatish
           </button>
         )}
-      </div>
-
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 space-y-3">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <School className="w-4 h-4 text-teal-600" />
-          Maktab maʼlumotlari
-        </h3>
-        <div className="space-y-2.5">
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-              Maktab nomi
-            </label>
-            <input
-              type="text"
-              value={settings.schoolName}
-              onChange={(e) => onChange({ ...settings, schoolName: e.target.value })}
-              className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-              Direktor oʻrinbosari F.I.Sh.
-            </label>
-            <input
-              type="text"
-              value={settings.vicePrincipalName}
-              onChange={(e) => onChange({ ...settings, vicePrincipalName: e.target.value })}
-              className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm"
-            />
-          </div>
-        </div>
       </div>
 
       <TelegramSettingsCard settings={settings} onChange={onChange} onNotify={onNotify} />
@@ -117,15 +117,6 @@ export function SettingsView({
           })}
         </div>
       </div>
-
-      <button
-        type="button"
-        onClick={onResetDemo}
-        className="w-full h-11 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center justify-center gap-2 hover:bg-rose-100 transition"
-      >
-        <RotateCcw className="w-4 h-4" />
-        <span>Namuna maʼlumotlarini tiklash</span>
-      </button>
     </div>
   );
 }

@@ -1,30 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AppSettings, ClassGroup, ClassReport, StudentAttendance, TabId } from './types';
-import { createSeedReports, DEFAULT_SETTINGS, SEED_CLASSES } from './data/seed';
+import { AppSettings, ClassReport, StudentAttendance, TabId, TeacherProfile } from './types';
+import { DEFAULT_SETTINGS, SEED_CLASSES } from './data/seed';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { getTodayISO } from './utils/uzbekDate';
 import { AppHeader } from './components/AppHeader';
 import { BottomNav } from './components/BottomNav';
-import { DateBar } from './components/DateBar';
 import { Toast, ToastMessage } from './components/Toast';
 import { AttendanceView } from './views/AttendanceView';
 import { DashboardView } from './views/DashboardView';
-import { ClassesView } from './views/ClassesView';
+import { RegisterView } from './views/RegisterView';
 import { SettingsView } from './views/SettingsView';
 
 export function App() {
-  const [classes, setClasses] = useLocalStorage<ClassGroup[]>('davomat_classes_v1', SEED_CLASSES);
-  const [reports, setReports] = useLocalStorage<ClassReport[]>('davomat_reports_v1', createSeedReports);
-  const [settings, setSettings] = useLocalStorage<AppSettings>('davomat_settings_v1', DEFAULT_SETTINGS);
+  const [teacher, setTeacher] = useLocalStorage<TeacherProfile | null>('davomat_teacher_v2', null);
+  const [reports, setReports] = useLocalStorage<ClassReport[]>('davomat_reports_v2', []);
+  const [settings, setSettings] = useLocalStorage<AppSettings>('davomat_settings_v2', DEFAULT_SETTINGS);
 
   const [tab, setTab] = useState<TabId>('attendance');
-  const [date, setDate] = useState<string>(getTodayISO);
-  const [selectedClassId, setSelectedClassId] = useState<string>(
-    settings.defaultClassId || classes[0]?.id || ''
-  );
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const { canInstall, isInstalled, isOnline, installApp } = usePwaInstall();
+
+  const today = getTodayISO();
 
   useEffect(() => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -38,49 +35,63 @@ export function App() {
     setTimeout(() => setToast((cur) => (cur?.id === id ? null : cur)), 2800);
   };
 
-  const reportsForDate = useMemo(() => reports.filter((r) => r.date === date), [reports, date]);
+  const teacherClass = useMemo(
+    () => SEED_CLASSES.find((c) => c.id === teacher?.classId) ?? null,
+    [teacher?.classId]
+  );
+
+  if (!teacher || !teacherClass) {
+    return (
+      <RegisterView
+        classes={SEED_CLASSES}
+        onRegister={(profile) => {
+          setTeacher(profile);
+          notify(`Xush kelibsiz, ${profile.fullName}!`);
+        }}
+      />
+    );
+  }
+
+  const todayReport = reports.find(
+    (r) => r.classId === teacherClass.id && r.date === today
+  );
 
   const handleSaveReport = (
-    classId: string,
     records: Record<string, StudentAttendance>,
     sentToTelegram?: boolean
   ) => {
     const entry: ClassReport = {
-      classId,
-      date,
+      classId: teacherClass.id,
+      date: today,
       submittedAt: new Date().toISOString(),
       records,
       sentToTelegram: Boolean(sentToTelegram),
     };
     setReports((prev) => [
-      ...prev.filter((r) => !(r.classId === classId && r.date === date)),
+      ...prev.filter((r) => !(r.classId === teacherClass.id && r.date === today)),
       entry,
     ]);
   };
-
-  const pendingCount = Math.max(0, classes.length - reportsForDate.length);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <Toast toast={toast} />
 
       <AppHeader
-        schoolName={settings.schoolName}
+        classNameLabel={teacherClass.name}
+        teacherName={teacher.fullName}
         isOnline={isOnline}
         canInstall={canInstall}
         onInstall={installApp}
       />
 
       <main className="max-w-2xl mx-auto px-3 sm:px-4 pt-3 space-y-3">
-        {(tab === 'attendance' || tab === 'dashboard') && <DateBar date={date} onChange={setDate} />}
-
         {tab === 'attendance' && (
           <AttendanceView
-            classes={classes}
-            selectedClassId={selectedClassId}
-            onSelectClass={setSelectedClassId}
-            date={date}
-            reportsForDate={reportsForDate}
+            cls={teacherClass}
+            teacher={teacher}
+            date={today}
+            existingReport={todayReport}
             settings={settings}
             onSaveReport={handleSaveReport}
             onNotify={notify}
@@ -89,33 +100,21 @@ export function App() {
 
         {tab === 'dashboard' && (
           <DashboardView
-            classes={classes}
-            reportsForDate={reportsForDate}
-            date={date}
+            cls={teacherClass}
+            teacher={teacher}
+            report={todayReport}
+            date={today}
             settings={settings}
-            onJumpToClass={(id) => {
-              setSelectedClassId(id);
-              setTab('attendance');
-            }}
             onNotify={notify}
           />
         )}
 
-        {tab === 'classes' && (
-          <ClassesView classes={classes} onChangeClasses={setClasses} onNotify={notify} />
-        )}
-
         {tab === 'settings' && (
           <SettingsView
+            teacher={teacher}
+            classNameLabel={teacherClass.name}
             settings={settings}
             onChange={setSettings}
-            onResetDemo={() => {
-              setClasses(SEED_CLASSES);
-              setReports(createSeedReports());
-              setSettings(DEFAULT_SETTINGS);
-              setSelectedClassId(SEED_CLASSES[0].id);
-              notify('Namuna maʼlumotlari qayta tiklandi', 'info');
-            }}
             canInstall={canInstall}
             isInstalled={isInstalled}
             onInstallApp={installApp}
@@ -124,7 +123,7 @@ export function App() {
         )}
       </main>
 
-      <BottomNav tab={tab} pendingCount={pendingCount} onChange={setTab} />
+      <BottomNav tab={tab} onChange={setTab} />
     </div>
   );
 }

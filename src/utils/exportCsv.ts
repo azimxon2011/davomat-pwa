@@ -1,57 +1,27 @@
-import { ClassGroup, ClassReport } from '../types';
+import { ClassGroup, StudentAttendance, TeacherProfile } from '../types';
 import { STATUS_MAP } from './status';
-import { formatTimeShort } from './uzbekDate';
 
-export function downloadDailyCsv(
-  classes: ClassGroup[],
-  reportsForDate: ClassReport[],
+export function downloadClassCsv(
+  cls: ClassGroup,
+  teacher: TeacherProfile,
+  records: Record<string, StudentAttendance>,
   date: string
 ): void {
-  const reportMap = new Map(reportsForDate.map((r) => [r.classId, r]));
   const rows: string[][] = [
-    [
-      'Sana',
-      'Sinf',
-      'Smena',
-      'Sinf rahbari',
-      'Oʻquvchi F.I.Sh.',
-      'Holat',
-      'Izoh',
-      'Topshirilgan vaqt',
-    ],
+    ['Sana', 'Sinf', 'Sinf rahbari', 'Oʻquvchi F.I.Sh.', 'Holat', 'Sabab / Izoh'],
   ];
 
-  for (const cls of classes) {
-    const rep = reportMap.get(cls.id);
-    if (!rep) {
-      rows.push([
-        date,
-        cls.name,
-        cls.shift,
-        cls.curatorName,
-        '—',
-        'Topshirilmagan',
-        '',
-        '',
-      ]);
-      continue;
-    }
-
-    const time = formatTimeShort(rep.submittedAt);
-    for (const s of cls.students) {
-      const rec = rep.records[s.id];
-      const status = rec?.status ?? 'present';
-      rows.push([
-        date,
-        cls.name,
-        cls.shift,
-        cls.curatorName,
-        s.fullName,
-        STATUS_MAP[status].label,
-        rec?.note ?? '',
-        time,
-      ]);
-    }
+  for (const s of cls.students) {
+    const rec = records[s.id];
+    const status = rec?.status ?? 'present';
+    rows.push([
+      date,
+      cls.name,
+      teacher.fullName,
+      s.fullName,
+      STATUS_MAP[status].label,
+      rec?.reason ?? '',
+    ]);
   }
 
   const csvContent =
@@ -66,7 +36,7 @@ export function downloadDailyCsv(
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `davomat-${date}.csv`;
+  a.download = `davomat-${cls.name}-${date}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

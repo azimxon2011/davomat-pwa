@@ -1,134 +1,61 @@
-import { AppSettings, ClassGroup, ClassReport, StudentAttendance } from '../types';
-import { computeClassStats, STATUS_MAP } from './status';
+import { ClassGroup, StudentAttendance, TeacherProfile } from '../types';
+import { computeClassStats } from './status';
 import { formatUzbekDate } from './uzbekDate';
 
 export function buildClassTelegramReport(
   cls: ClassGroup,
+  teacher: TeacherProfile,
   date: string,
-  records: Record<string, StudentAttendance>,
-  settings: AppSettings
+  records: Record<string, StudentAttendance>
 ): string {
   const stats = computeClassStats(cls, records);
-  const lines: string[] = [
-    `📋 DAVOMAT HISOBOTI — ${cls.name} sinf`,
-    `🏫 ${settings.schoolName}`,
-    `📅 Sana: ${formatUzbekDate(date)} (${cls.shift})`,
-    `👩‍🏫 Sinf rahbari: ${cls.curatorName}`,
-    ``,
-    `📊 Jami: ${stats.total} nafar`,
-    `✅ Keldi: ${stats.present} | ⏰ Kechikdi: ${stats.late} | Davomat: ${stats.attendancePercent}%`,
-  ];
 
-  const flagged = cls.students.filter(
-    (s) => (records[s.id]?.status ?? 'present') !== 'present'
+  const presentList = cls.students.filter(
+    (s) => (records[s.id]?.status ?? 'present') === 'present'
+  );
+  const absentList = cls.students.filter(
+    (s) => records[s.id]?.status === 'absent'
+  );
+  const lateList = cls.students.filter(
+    (s) => records[s.id]?.status === 'late'
   );
 
-  if (flagged.length === 0) {
-    lines.push(``, `🎉 Barcha oʻquvchilar darsda toʻliq ishtirok etmoqda!`);
+  const lines: string[] = [
+    `📋 DAVOMAT HISOBOTI — ${cls.name} sinf`,
+    `📅 Sana: ${formatUzbekDate(date)}`,
+    `👩‍🏫 Sinf rahbari: ${teacher.fullName}`,
+    ``,
+    `📊 Jami: ${stats.total} | ✅ Keldi: ${stats.present} | ❌ Kelmadi: ${stats.absent} | ⏰ Kechikdi: ${stats.late} (${stats.attendancePercent}%)`,
+  ];
+
+  lines.push(``, `✅ Kelganlar (${presentList.length}):`);
+  if (presentList.length === 0) {
+    lines.push(`— Yoʻq`);
   } else {
-    lines.push(
-      `❌ Kelmaganlar: ${stats.absentTotal} (🤒 ${stats.sick} · 📄 ${stats.excused} · ❌ ${stats.unexcused})`,
-      ``,
-      `📌 Roʻyxat:`
-    );
-    flagged.forEach((student, idx) => {
-      const rec = records[student.id];
-      const meta = STATUS_MAP[rec.status];
-      const noteText = rec.note?.trim() ? ` — ${rec.note.trim()}` : '';
-      lines.push(`${idx + 1}. ${meta.emoji} ${student.fullName} (${meta.label}${noteText})`);
+    presentList.forEach((s, i) => lines.push(`${i + 1}. ${s.fullName}`));
+  }
+
+  lines.push(``, `❌ Kelmaganlar (${absentList.length}):`);
+  if (absentList.length === 0) {
+    lines.push(`— Yoʻq`);
+  } else {
+    absentList.forEach((s, i) => {
+      const reason = records[s.id]?.reason?.trim();
+      lines.push(`${i + 1}. ${s.fullName}${reason ? ` — ${reason}` : ''}`);
+    });
+  }
+
+  lines.push(``, `⏰ Kechikkanlar (${lateList.length}):`);
+  if (lateList.length === 0) {
+    lines.push(`— Yoʻq`);
+  } else {
+    lateList.forEach((s, i) => {
+      const reason = records[s.id]?.reason?.trim();
+      lines.push(`${i + 1}. ${s.fullName}${reason ? ` — ${reason}` : ''}`);
     });
   }
 
   return lines.join('\n');
-}
-
-export function buildSchoolTelegramReport(
-  classes: ClassGroup[],
-  reportsForDate: ClassReport[],
-  date: string,
-  settings: AppSettings
-): string {
-  const reportMap = new Map(reportsForDate.map((r) => [r.classId, r]));
-  let totalStudents = 0;
-  let totalPresent = 0;
-  let totalLate = 0;
-  let totalSick = 0;
-  let totalExcused = 0;
-  let totalUnexcused = 0;
-
-  const submittedClasses: ClassGroup[] = [];
-  const pendingClasses: ClassGroup[] = [];
-
-  for (const cls of classes) {
-    const rep = reportMap.get(cls.id);
-    if (rep) {
-      submittedClasses.push(cls);
-      const st = computeClassStats(cls, rep.records);
-      totalStudents += st.total;
-      totalPresent += st.present;
-      totalLate += st.late;
-      totalSick += st.sick;
-      totalExcused += st.excused;
-      totalUnexcused += st.unexcused;
-    } else {
-      pendingClasses.push(cls);
-    }
-  }
-
-  const totalAbsent = totalSick + totalExcused + totalUnexcused;
-  const pct =
-    totalStudents === 0
-      ? 0
-      : Math.round(((totalPresent + totalLate) / totalStudents) * 1000) / 10;
-
-  const lines: string[] = [
-    `🏫 KUNLIK UMUMIY DAVOMAT HISOBOTI`,
-    `📍 ${settings.schoolName}`,
-    `📅 Sana: ${formatUzbekDate(date)}`,
-    `👤 Direktor oʻrinbosari: ${settings.vicePrincipalName}`,
-    ``,
-    `📝 Topshirdi: ${submittedClasses.length} / ${classes.length} sinf`,
-    `👥 Hisobga olingan: ${totalStudents} oʻquvchi`,
-    `✅ Keldi: ${totalPresent} | ⏰ Kechikdi: ${totalLate} (${pct}%)`,
-    `❌ Kelmaganlar: ${totalAbsent} (🤒 Kasal: ${totalSick} · 📄 Sababli: ${totalExcused} · ❌ Sababsiz: ${totalUnexcused})`,
-  ];
-
-  const classDetails: string[] = [];
-  for (const cls of submittedClasses) {
-    const rep = reportMap.get(cls.id)!;
-    const flagged = cls.students.filter(
-      (s) => (rep.records[s.id]?.status ?? 'present') !== 'present'
-    );
-    if (flagged.length > 0) {
-      classDetails.push(`\n🔹 ${cls.name} (${cls.curatorName}):`);
-      flagged.forEach((s) => {
-        const rec = rep.records[s.id];
-        const meta = STATUS_MAP[rec.status];
-        const note = rec.note?.trim() ? ` — ${rec.note.trim()}` : '';
-        classDetails.push(`  • ${meta.emoji} ${s.fullName} (${meta.label}${note})`);
-      });
-    }
-  }
-
-  if (classDetails.length > 0) {
-    lines.push(``, `📌 Kelmagan va kechikkanlar:`, ...classDetails);
-  } else if (submittedClasses.length > 0) {
-    lines.push(``, `🎉 Topshirgan barcha sinflarda davomat 100%!`);
-  }
-
-  if (pendingClasses.length > 0) {
-    lines.push(
-      ``,
-      `⏳ Hali topshirmagan sinflar (${pendingClasses.length}):`,
-      ...pendingClasses.map((c) => `  • ${c.name} — ${c.curatorName}`)
-    );
-  }
-
-  return lines.join('\n');
-}
-
-export function buildReminderMessage(cls: ClassGroup, date: string): string {
-  return `Assalomu alaykum, ${cls.curatorName}! ${formatUzbekDate(date)} sanasi uchun ${cls.name} sinf davomat hisobotini topshirishingizni soʻraymiz. Rahmat!`;
 }
 
 export async function sendToTelegramBot(

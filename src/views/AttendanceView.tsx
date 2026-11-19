@@ -1,89 +1,96 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AppSettings, AttendanceStatus, ClassGroup, ClassReport, StudentAttendance } from '../types';
+import { useEffect, useState } from 'react';
+import {
+  AppSettings,
+  AttendanceStatus,
+  ClassGroup,
+  ClassReport,
+  StudentAttendance,
+  TeacherProfile,
+} from '../types';
 import { computeClassStats } from '../utils/status';
 import { buildClassTelegramReport } from '../utils/telegram';
 import { triggerHaptic } from '../utils/exportCsv';
 import { AttendanceFooter } from '../components/AttendanceFooter';
 import { AttendanceHeader, FilterMode } from '../components/AttendanceHeader';
-import { ClassPills } from '../components/ClassPills';
 import { NoteModal } from '../components/NoteModal';
 import { StudentRow } from '../components/StudentRow';
 import { TelegramPreviewModal } from '../components/TelegramPreviewModal';
 
 interface Props {
-  classes: ClassGroup[];
-  selectedClassId: string;
-  onSelectClass: (id: string) => void;
+  cls: ClassGroup;
+  teacher: TeacherProfile;
   date: string;
-  reportsForDate: ClassReport[];
+  existingReport?: ClassReport;
   settings: AppSettings;
-  onSaveReport: (classId: string, records: Record<string, StudentAttendance>, sent?: boolean) => void;
+  onSaveReport: (records: Record<string, StudentAttendance>, sent?: boolean) => void;
   onNotify: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 export function AttendanceView({
-  classes,
-  selectedClassId,
-  onSelectClass,
+  cls,
+  teacher,
   date,
-  reportsForDate,
+  existingReport,
   settings,
   onSaveReport,
   onNotify,
 }: Props) {
-  const cls = classes.find((c) => c.id === selectedClassId) ?? classes[0];
-  const existing = useMemo(() => reportsForDate.find((r) => r.classId === cls?.id), [reportsForDate, cls?.id]);
-
   const [draft, setDraft] = useState<Record<string, StudentAttendance>>({});
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterMode>('all');
-  const [noteTarget, setNoteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [reasonTarget, setReasonTarget] = useState<{
+    id: string;
+    name: string;
+    status: AttendanceStatus;
+  } | null>(null);
   const [tgOpen, setTgOpen] = useState(false);
 
   useEffect(() => {
-    setDraft(existing?.records ? { ...existing.records } : {});
-    setSearch('');
-    setFilter('all');
-  }, [cls?.id, date, existing?.submittedAt]);
+    setDraft(existingReport?.records ? { ...existingReport.records } : {});
+  }, [cls.id, date, existingReport?.submittedAt]);
 
-  if (!cls) {
-    return (
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 text-center border border-slate-200 dark:border-slate-800 text-sm text-slate-500">
-        Hozircha sinflar mavjud emas. «Sinflar» boʻlimidan yangi sinf qoʻshing.
-      </div>
-    );
-  }
-
-  const doneIds = new Set(reportsForDate.map((r) => r.classId));
   const stats = computeClassStats(cls, draft);
 
-  const setStatus = (sid: string, status: AttendanceStatus, note?: string) => {
+  const setStatus = (sid: string, status: AttendanceStatus, reason?: string) => {
     triggerHaptic(settings.haptics, 10);
     setDraft((prev) => {
       const next = { ...prev };
-      if (status === 'present' && !note) delete next[sid];
-      else next[sid] = { status, note: note !== undefined ? note : prev[sid]?.note };
+      if (status === 'present') {
+        delete next[sid];
+      } else {
+        next[sid] = {
+          status,
+          reason: reason !== undefined ? reason : prev[sid]?.reason,
+        };
+      }
       return next;
     });
   };
 
+  const handleSelectStatus = (studentId: string, studentName: string, status: AttendanceStatus) => {
+    setStatus(studentId, status);
+    if (status === 'absent') {
+      setReasonTarget({ id: studentId, name: studentName, status: 'absent' });
+    }
+  };
+
   const students = cls.students.filter((s) => {
     const st = draft[s.id]?.status ?? 'present';
-    if (filter === 'absent' && !['sick', 'excused', 'unexcused'].includes(st)) return false;
+    if (filter === 'absent' && st !== 'absent') return false;
     if (filter === 'late' && st !== 'late') return false;
     if (search.trim() && !s.fullName.toLowerCase().includes(search.trim().toLowerCase())) return false;
     return true;
   });
 
-  const tgText = buildClassTelegramReport(cls, date, draft, settings);
+  const tgText = buildClassTelegramReport(cls, teacher, date, draft);
 
   return (
     <div className="space-y-4 pb-36">
-      <ClassPills classes={classes} selectedId={cls.id} doneIds={doneIds} onSelect={onSelectClass} />
-
       <AttendanceHeader
         currentClass={cls}
-        existingReport={existing}
+        teacher={teacher}
+        date={date}
+        existingReport={existingReport}
         stats={stats}
         search={search}
         onSearchChange={setSearch}
@@ -92,7 +99,7 @@ export function AttendanceView({
         onAllPresent={() => {
           triggerHaptic(settings.haptics, [15, 30, 15]);
           setDraft({});
-          onSaveReport(cls.id, {}, false);
+          onSaveReport({}, false);
           onNotify(`${cls.name} sinf: barcha oʻquvchilar «Keldi» deb saqlandi!`);
         }}
       />
@@ -109,8 +116,14 @@ export function AttendanceView({
               student={s}
               index={i}
               record={draft[s.id]}
-              onStatusChange={(st) => setStatus(s.id, st)}
-              onOpenNote={() => setNoteTarget({ id: s.id, name: s.fullName })}
+              onSelectStatus={(st) => handleSelectStatus(s.id, s.fullName, st)}
+              onEditReason={() =>
+                setReasonTarget({
+                  id: s.id,
+                  name: s.fullName,
+                  status: draft[s.id]?.status ?? 'absent',
+                })
+              }
             />
           ))
         )}
@@ -120,22 +133,22 @@ export function AttendanceView({
         stats={stats}
         onSave={() => {
           triggerHaptic(settings.haptics, 18);
-          onSaveReport(cls.id, draft, existing?.sentToTelegram);
+          onSaveReport(draft, existingReport?.sentToTelegram);
           onNotify(`${cls.name} sinf davomati saqlandi`);
         }}
         onSendTelegram={() => {
-          onSaveReport(cls.id, draft, existing?.sentToTelegram);
+          onSaveReport(draft, existingReport?.sentToTelegram);
           setTgOpen(true);
         }}
       />
 
       <NoteModal
-        open={Boolean(noteTarget)}
-        studentName={noteTarget?.name ?? ''}
-        status={noteTarget ? (draft[noteTarget.id]?.status ?? 'present') : 'present'}
-        initialNote={noteTarget ? (draft[noteTarget.id]?.note ?? '') : ''}
-        onSave={(st, note) => noteTarget && setStatus(noteTarget.id, st, note)}
-        onClose={() => setNoteTarget(null)}
+        open={Boolean(reasonTarget)}
+        studentName={reasonTarget?.name ?? ''}
+        status={reasonTarget?.status ?? 'absent'}
+        initialReason={reasonTarget ? (draft[reasonTarget.id]?.reason ?? '') : ''}
+        onSave={(st, reason) => reasonTarget && setStatus(reasonTarget.id, st, reason)}
+        onClose={() => setReasonTarget(null)}
       />
 
       <TelegramPreviewModal
@@ -144,7 +157,7 @@ export function AttendanceView({
         text={tgText}
         settings={settings}
         onClose={() => setTgOpen(false)}
-        onSentSuccess={() => onSaveReport(cls.id, draft, true)}
+        onSentSuccess={() => onSaveReport(draft, true)}
         onNotify={onNotify}
       />
     </div>
