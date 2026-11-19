@@ -1,0 +1,187 @@
+import { AppSettings, ClassGroup, ClassReport } from '../types';
+import { getTodayISO } from '../utils/uzbekDate';
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  schoolName: '45-sonli umumtaʼlim maktabi',
+  vicePrincipalName: 'Karimova Dilnoza Rustamovna',
+  telegramBotToken: '',
+  telegramChatId: '',
+  defaultClassId: 'cls-8a',
+  theme: 'system',
+  haptics: true,
+};
+
+function makeStudents(prefix: string, names: string[]) {
+  return names.map((fullName, idx) => ({ id: `${prefix}-${idx + 1}`, fullName }));
+}
+
+export const SEED_CLASSES: ClassGroup[] = [
+  {
+    id: 'cls-8a',
+    name: '8-A',
+    curatorName: 'Rahimova Gulnora Azimovna',
+    curatorPhone: '+998 90 123 45 67',
+    shift: '1-smena',
+    students: makeStudents('s-8a', [
+      'Abdullayev Jasurbek Alisher oʻgʻli',
+      'Akbarova Madina Farhod qizi',
+      'Alimov Sardorbek Bahrom oʻgʻli',
+      'Azizova Sevinch Dilshod qizi',
+      'Bozorov Muhammadali Otabek oʻgʻli',
+      'Ergasheva Muslima Shuhrat qizi',
+      'Gʻaniyev Diyorbek Ravshan oʻgʻli',
+      'Hasanova Mohinur Sherzod qizi',
+      'Ibrohimov Azizbek Ulugʻbek oʻgʻli',
+      'Ismoilova Rayhona Jamshid qizi',
+      'Karimov Behruzbek Sanjar oʻgʻli',
+      'Mahmudova Zilola Komil qizi',
+      'Mirzayev Shohruxbek Nodir oʻgʻli',
+      'Nazarova Nozima Rustam qizi',
+      'Olimov Javohirbek Bekzod oʻgʻli',
+      'Qodirova Shabnam Davron qizi',
+      'Rustamov Islombek Timur oʻgʻli',
+      'Salimova Durdona Anvar qizi',
+      'Toshmatov Umidjon Zafar oʻgʻli',
+      'Usmonova Nigora Akmal qizi',
+    ]),
+  },
+  {
+    id: 'cls-9b',
+    name: '9-B',
+    curatorName: 'Tursunov Baxtiyor Qodirovich',
+    curatorPhone: '+998 91 234 56 78',
+    shift: '1-smena',
+    students: makeStudents('s-9b', [
+      'Abduqodirov Boburjon Murod oʻgʻli',
+      'Ahmadaliyeva Farangiz Ilhom qizi',
+      'Baxtiyorov Samandar Oʻtkir oʻgʻli',
+      'Davronova Malika Jasur qizi',
+      'Fayzullayev Bilolbek Akram oʻgʻli',
+      'Hakimova Diyora Mansur qizi',
+      'Joʻrayev Amirbek Shavkat oʻgʻli',
+      'Komilova Munisa Sobir qizi',
+      'Mamatqulov Otabek Erkin oʻgʻli',
+      'Nurmatova Charos Botir qizi',
+      'Ortiqov Shahzod Alisher oʻgʻli',
+      'Poʻlatova Sarvinoz Husan qizi',
+      'Raxmatullayev Kamoliddin Aziz oʻgʻli',
+      'Sodiqova Gulshanoy Qahramon qizi',
+      'Xolmatov Temurbek Dilmurod oʻgʻli',
+      'Yusupova Dilfuza Sardor qizi',
+    ]),
+  },
+  {
+    id: 'cls-11a',
+    name: '11-A',
+    curatorName: 'Sattorova Nargiza Hamidovna',
+    curatorPhone: '+998 93 345 67 89',
+    shift: '1-smena',
+    students: makeStudents('s-11a', [
+      'Anvarov Muhammadrizo Odil oʻgʻli',
+      'Bahromova Kumushoy Zokir qizi',
+      'Eshonqulov Sherzodjon Bahodir oʻgʻli',
+      'Gʻulomova Laylo Farrux qizi',
+      'Haydarov Bunyodbek Mirzo oʻgʻli',
+      'Jalilova Marjona Xurshid qizi',
+      'Murodov Abdulaziz Kamol oʻgʻli',
+      'Nabiyeva Parizoda Elmurod qizi',
+      'Qosimov Jamoliddin Abror oʻgʻli',
+      'Saidova Ruxshona Sherali qizi',
+      'Sharipov Lazizbek Rustam oʻgʻli',
+      'Zokirova Feruza Maʼruf qizi',
+    ]),
+  },
+  {
+    id: 'cls-7a',
+    name: '7-A',
+    curatorName: 'Oʻrinboyeva Shahlo Murodovna',
+    curatorPhone: '+998 94 456 78 90',
+    shift: '1-smena',
+    students: makeStudents('s-7a', [
+      'Asadullayev Ogʻabek Siroj oʻgʻli',
+      'Berdiyeva Zarinaxon Oʻktam qizi',
+      'Doʻstov Firdavs Alimardon oʻgʻli',
+      'Gʻofurova Asaloy Sherzod qizi',
+      'Hoshimov Suhrobjon Ulugʻbek oʻgʻli',
+      'Ikromova Mubinaxon Oybek qizi',
+      'Normurodov Eldorbek Qobil oʻgʻli',
+      'Oripova Bibisora Nurali qizi',
+      'Ravshanov Dostonbek Ilhom oʻgʻli',
+      'Shokirova Kamola Baxrom qizi',
+      'Toʻrayev Mirjalol Mansur oʻgʻli',
+      'Vohidova Eʼzoza Javlon qizi',
+    ]),
+  },
+  {
+    id: 'cls-6b',
+    name: '6-B',
+    curatorName: 'Xudoyberdiyev Jamshid Sobirovich',
+    curatorPhone: '+998 95 567 89 01',
+    shift: '2-smena',
+    students: makeStudents('s-6b', [
+      'Abdurahmonov Yusufbek Aziz oʻgʻli',
+      'Boltaboyeva Sabina Doniyor qizi',
+      'Eshmurodov Izzatbek Komil oʻgʻli',
+      'Hamidova Robiya Dilshod qizi',
+      'Islomov Abdulloh Sardor oʻgʻli',
+      'Kamilova Yasmina Ruslan qizi',
+      'Nematov Hojiakbar Bahodir oʻgʻli',
+      'Pardayeva Shukrona Akmal qizi',
+      'Roʻziyev Muhammadjon Otabek oʻgʻli',
+      'Yoʻldosheva Fotima Farhod qizi',
+    ]),
+  },
+  {
+    id: 'cls-5a',
+    name: '5-A',
+    curatorName: 'Mamatova Dildora Rustamovna',
+    curatorPhone: '+998 97 678 90 12',
+    shift: '2-smena',
+    students: makeStudents('s-5a', [
+      'Alisherov Imronbek Jahongir oʻgʻli',
+      'Bahriddinova Sofiya Umid qizi',
+      'Gʻiyosov Mustafo Bekzod oʻgʻli',
+      'Karimova Xadicha Alisher qizi',
+      'Madaminov Umarbek Shohrux oʻgʻli',
+      'Otabekova Samira Jasur qizi',
+      'Qurbanov Yahyo Sanjar oʻgʻli',
+      'Sultonova Maryamxon Nodir qizi',
+      'Tolipov Saidbek Davron oʻgʻli',
+      'Ziyoyeva Soliha Timur qizi',
+    ]),
+  },
+];
+
+export function createSeedReports(): ClassReport[] {
+  const today = getTodayISO();
+  const now = Date.now();
+  return [
+    {
+      classId: 'cls-9b',
+      date: today,
+      submittedAt: new Date(now - 48 * 60000).toISOString(),
+      sentToTelegram: true,
+      records: {
+        's-9b-4': { status: 'sick', note: 'Harorati koʻtarilgan, onasi xabar berdi' },
+        's-9b-11': { status: 'late', note: '10 daqiqa kechikdi' },
+      },
+    },
+    {
+      classId: 'cls-11a',
+      date: today,
+      submittedAt: new Date(now - 32 * 60000).toISOString(),
+      sentToTelegram: true,
+      records: {
+        's-11a-3': { status: 'excused', note: 'Olimpiada tayyorgarligida' },
+        's-11a-9': { status: 'unexcused', note: 'Telefon koʻtarmayapti' },
+      },
+    },
+    {
+      classId: 'cls-7a',
+      date: today,
+      submittedAt: new Date(now - 18 * 60000).toISOString(),
+      sentToTelegram: false,
+      records: {},
+    },
+  ];
+}
