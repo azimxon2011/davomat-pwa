@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { TELEGRAM_CONFIG } from '../config';
 import { sendToTelegramBot } from '../utils/telegram';
 
 interface TelegramPreviewModalProps {
@@ -22,17 +23,22 @@ export function TelegramPreviewModal({
   onNotify,
 }: TelegramPreviewModalProps) {
   const [sending, setSending] = useState(false);
+  const [needStart, setNeedStart] = useState(false);
 
   if (!open) return null;
 
   const handleBotSend = async () => {
     setSending(true);
+    setNeedStart(false);
     const res = await sendToTelegramBot(text, excelBytes ?? undefined, date);
     setSending(false);
     if (res.ok) {
       onNotify('Yuborildi');
       onClose();
     } else {
+      if (res.error?.includes('/start')) {
+        setNeedStart(true);
+      }
       onNotify(res.error || 'Yuborishda xatolik', 'error');
     }
   };
@@ -63,7 +69,18 @@ export function TelegramPreviewModal({
           </pre>
         </div>
 
-        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 safe-bottom">
+        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2 safe-bottom">
+          {needStart && (
+            <a
+              href={`https://t.me/${TELEGRAM_CONFIG.botUsername}?start=1`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs flex items-center justify-center transition"
+            >
+              1. @{TELEGRAM_CONFIG.botUsername} botiga /start bosing, keyin «Yuborish»
+            </a>
+          )}
+
           <button
             type="button"
             disabled={sending}

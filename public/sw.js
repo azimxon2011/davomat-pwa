@@ -1,4 +1,4 @@
-const CACHE_NAME = 'davomat-pwa-v6';
+const CACHE_NAME = 'davomat-pwa-v7';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
