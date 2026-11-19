@@ -1,4 +1,4 @@
-const CACHE_NAME = 'davomat-pwa-v4';
+const CACHE_NAME = 'davomat-pwa-v5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -6,6 +6,7 @@ const STATIC_ASSETS = [
   '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
+  '/DAVOMAT.xlsx',
 ];
 
 self.addEventListener('install', (event) => {

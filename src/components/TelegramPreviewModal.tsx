@@ -5,11 +5,14 @@ import {
   openTelegramShare,
   sendToTelegramBot,
 } from '../utils/telegram';
+import { downloadExcelBytes } from '../utils/excelUpdater';
 
 interface TelegramPreviewModalProps {
   open: boolean;
   title: string;
   text: string;
+  date: string;
+  excelBytes: Uint8Array | null;
   onClose: () => void;
   onNotify: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
@@ -18,6 +21,8 @@ export function TelegramPreviewModal({
   open,
   title,
   text,
+  date,
+  excelBytes,
   onClose,
   onNotify,
 }: TelegramPreviewModalProps) {
@@ -41,10 +46,10 @@ export function TelegramPreviewModal({
 
   const handleBotSend = async () => {
     setSending(true);
-    const res = await sendToTelegramBot(text);
+    const res = await sendToTelegramBot(text, excelBytes ?? undefined, date);
     setSending(false);
     if (res.ok) {
-      onNotify('Telegramga yuborildi');
+      onNotify('Hisobot va DAVOMAT.xlsx Telegramga yuborildi!');
       onClose();
     } else {
       onNotify(res.error || 'Yuborishda xatolik', 'error');
@@ -85,7 +90,20 @@ export function TelegramPreviewModal({
               onClick={handleBotSend}
               className="w-full h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold text-sm shadow-sm shadow-indigo-600/20 disabled:opacity-50 transition"
             >
-              {sending ? 'Yuborilmoqda...' : 'Telegramga yuborish'}
+              {sending ? 'Yuborilmoqda...' : 'Telegram bot orqali yuborish (+ DAVOMAT.xlsx)'}
+            </button>
+          )}
+
+          {excelBytes && (
+            <button
+              type="button"
+              onClick={() => {
+                downloadExcelBytes(excelBytes, 'DAVOMAT.xlsx');
+                onNotify('DAVOMAT.xlsx yuklab olindi');
+              }}
+              className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition"
+            >
+              DAVOMAT.xlsx yuklab olish (yangilangan)
             </button>
           )}
 

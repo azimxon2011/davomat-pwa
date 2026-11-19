@@ -19,7 +19,8 @@ interface Props {
   teacher: TeacherProfile;
   date: string;
   existingReport?: ClassReport;
-  onSaveReport: (records: Record<string, StudentAttendance>) => void;
+  excelBytes: Uint8Array | null;
+  onSaveReport: (records: Record<string, StudentAttendance>) => Promise<void>;
   onNotify: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -28,6 +29,7 @@ export function AttendanceView({
   teacher,
   date,
   existingReport,
+  excelBytes,
   onSaveReport,
   onNotify,
 }: Props) {
@@ -121,8 +123,8 @@ export function AttendanceView({
 
       <AttendanceFooter
         stats={stats}
-        onSendTelegram={() => {
-          onSaveReport(draft);
+        onSendTelegram={async () => {
+          await onSaveReport(draft);
           setTgOpen(true);
         }}
       />
@@ -140,6 +142,8 @@ export function AttendanceView({
         open={tgOpen}
         title={`${cls.name} sinf hisoboti`}
         text={tgText}
+        date={date}
+        excelBytes={excelBytes}
         onClose={() => setTgOpen(false)}
         onNotify={onNotify}
       />

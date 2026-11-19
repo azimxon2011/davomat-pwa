@@ -8,6 +8,9 @@ export interface Student {
 export interface ClassGroup {
   id: string;
   name: string;
+  excelRow: number;
+  curatorName: string;
+  defaultAttended: number;
   students: Student[];
 }
 

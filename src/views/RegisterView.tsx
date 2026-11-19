@@ -7,9 +7,18 @@ interface RegisterViewProps {
 }
 
 export function RegisterView({ classes, onRegister }: RegisterViewProps) {
-  const [fullName, setFullName] = useState('');
   const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [fullName, setFullName] = useState(classes[0]?.curatorName ?? '');
   const [error, setError] = useState('');
+
+  const handleSelectClass = (cls: ClassGroup) => {
+    const prevCurator = classes.find((c) => c.id === classId)?.curatorName;
+    setClassId(cls.id);
+    if (!fullName.trim() || fullName.trim() === prevCurator) {
+      setFullName(cls.curatorName);
+    }
+    setError('');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,18 +69,15 @@ export function RegisterView({ classes, onRegister }: RegisterViewProps) {
             <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">
               Sinf
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {classes.map((cls) => {
                 const active = cls.id === classId;
                 return (
                   <button
                     key={cls.id}
                     type="button"
-                    onClick={() => {
-                      setClassId(cls.id);
-                      setError('');
-                    }}
-                    className={`h-11 rounded-xl border text-sm font-semibold transition ${
+                    onClick={() => handleSelectClass(cls)}
+                    className={`h-10 rounded-xl border text-xs font-semibold transition ${
                       active
                         ? 'bg-gradient-to-br from-indigo-600 to-blue-600 text-white border-indigo-600 shadow-sm shadow-indigo-600/25'
                         : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-indigo-400'

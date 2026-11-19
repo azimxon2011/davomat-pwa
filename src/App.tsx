@@ -4,14 +4,16 @@ import { SEED_CLASSES } from './data/seed';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { formatUzbekDate, getTodayISO } from './utils/uzbekDate';
+import { buildUpdatedExcelBytes, syncExcelToLocalDisk } from './utils/excelUpdater';
 import { AppHeader } from './components/AppHeader';
 import { Toast, ToastMessage } from './components/Toast';
 import { AttendanceView } from './views/AttendanceView';
 import { RegisterView } from './views/RegisterView';
 
 export function App() {
-  const [teacher, setTeacher] = useLocalStorage<TeacherProfile | null>('davomat_teacher_v2', null);
-  const [reports, setReports] = useLocalStorage<ClassReport[]>('davomat_reports_v2', []);
+  const [teacher, setTeacher] = useLocalStorage<TeacherProfile | null>('davomat_teacher_v3', null);
+  const [reports, setReports] = useLocalStorage<ClassReport[]>('davomat_reports_v3', []);
+  const [excelBytes, setExcelBytes] = useState<Uint8Array | null>(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const { canInstall, isOnline, installApp } = usePwaInstall();
 
@@ -41,17 +43,26 @@ export function App() {
     (r) => r.classId === teacherClass.id && r.date === today
   );
 
-  const handleSaveReport = (records: Record<string, StudentAttendance>) => {
+  const handleSaveReport = async (records: Record<string, StudentAttendance>) => {
     const entry: ClassReport = {
       classId: teacherClass.id,
       date: today,
       submittedAt: new Date().toISOString(),
       records,
     };
-    setReports((prev) => [
-      ...prev.filter((r) => !(r.classId === teacherClass.id && r.date === today)),
+    const nextReports = [
+      ...reports.filter((r) => !(r.classId === teacherClass.id && r.date === today)),
       entry,
-    ]);
+    ];
+    setReports(nextReports);
+
+    try {
+      const updated = await buildUpdatedExcelBytes(SEED_CLASSES, nextReports, today);
+      setExcelBytes(updated);
+      await syncExcelToLocalDisk(updated);
+    } catch {
+      // ignore if offline or template fetch fails
+    }
   };
 
   return (
@@ -73,6 +84,7 @@ export function App() {
           teacher={teacher}
           date={today}
           existingReport={todayReport}
+          excelBytes={excelBytes}
           onSaveReport={handleSaveReport}
           onNotify={notify}
         />
