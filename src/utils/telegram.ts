@@ -1,3 +1,4 @@
+import { TELEGRAM_CONFIG } from '../config';
 import { ClassGroup, StudentAttendance, TeacherProfile } from '../types';
 import { computeClassStats } from './status';
 import { formatUzbekDate } from './uzbekDate';
@@ -21,21 +22,19 @@ export function buildClassTelegramReport(
   );
 
   const lines: string[] = [
-    `📋 DAVOMAT HISOBOTI — ${cls.name} sinf`,
-    `📅 Sana: ${formatUzbekDate(date)}`,
-    `👩‍🏫 Sinf rahbari: ${teacher.fullName}`,
-    ``,
-    `📊 Jami: ${stats.total} | ✅ Keldi: ${stats.present} | ❌ Kelmadi: ${stats.absent} | ⏰ Kechikdi: ${stats.late} (${stats.attendancePercent}%)`,
+    `Davomat — ${cls.name} sinf (${formatUzbekDate(date)})`,
+    `Sinf rahbari: ${teacher.fullName}`,
+    `Jami: ${stats.total} | Keldi: ${stats.present} | Kelmadi: ${stats.absent} | Kechikdi: ${stats.late}`,
   ];
 
-  lines.push(``, `✅ Kelganlar (${presentList.length}):`);
+  lines.push(``, `Kelganlar (${presentList.length}):`);
   if (presentList.length === 0) {
     lines.push(`— Yoʻq`);
   } else {
     presentList.forEach((s, i) => lines.push(`${i + 1}. ${s.fullName}`));
   }
 
-  lines.push(``, `❌ Kelmaganlar (${absentList.length}):`);
+  lines.push(``, `Kelmaganlar (${absentList.length}):`);
   if (absentList.length === 0) {
     lines.push(`— Yoʻq`);
   } else {
@@ -45,7 +44,7 @@ export function buildClassTelegramReport(
     });
   }
 
-  lines.push(``, `⏰ Kechikkanlar (${lateList.length}):`);
+  lines.push(``, `Kechikkanlar (${lateList.length}):`);
   if (lateList.length === 0) {
     lines.push(`— Yoʻq`);
   } else {
@@ -58,17 +57,19 @@ export function buildClassTelegramReport(
   return lines.join('\n');
 }
 
+export function hasTelegramBotConfig(): boolean {
+  return Boolean(TELEGRAM_CONFIG.botToken.trim() && TELEGRAM_CONFIG.chatId.trim());
+}
+
 export async function sendToTelegramBot(
-  botToken: string,
-  chatId: string,
   text: string
 ): Promise<{ ok: boolean; error?: string }> {
-  const token = botToken.trim();
-  const chat = chatId.trim();
+  const token = TELEGRAM_CONFIG.botToken.trim();
+  const chat = TELEGRAM_CONFIG.chatId.trim();
   if (!token || !chat) {
     return {
       ok: false,
-      error: 'Telegram Bot tokeni yoki Chat ID sozlamalarda kiritilmagan.',
+      error: 'Bot tokeni yoki Chat ID src/config.ts da kiritilmagan.',
     };
   }
 
@@ -82,14 +83,14 @@ export async function sendToTelegramBot(
     if (!res.ok || !data.ok) {
       return {
         ok: false,
-        error: data.description || 'Telegram API xatoligi yuz berdi.',
+        error: data.description || 'Telegram xatoligi yuz berdi.',
       };
     }
     return { ok: true };
   } catch {
     return {
       ok: false,
-      error: 'Internet aloqasi yoʻq yoki Telegram serveriga ulanib boʻlmadi.',
+      error: 'Internet aloqasi yoʻq.',
     };
   }
 }

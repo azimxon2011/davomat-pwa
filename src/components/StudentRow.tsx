@@ -20,42 +20,26 @@ export function StudentRow({
   const isFlagged = status !== 'present';
 
   return (
-    <div
-      className={`rounded-2xl border p-3 transition ${
-        isFlagged
-          ? 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 shadow-xs'
-          : 'bg-white/90 dark:bg-slate-900/80 border-slate-200/70 dark:border-slate-800/80'
-      }`}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold flex items-center justify-center shrink-0">
-            {index + 1}
-          </span>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white leading-snug truncate">
-              {student.fullName}
-            </p>
-            {isFlagged && record?.reason && (
-              <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-0.5 truncate">
-                Sabab: {record.reason}
-              </p>
-            )}
-          </div>
+    <div className="px-3.5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div className="flex items-start justify-between gap-2 min-w-0">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+            <span className="text-zinc-400 mr-2 tabular-nums">{index + 1}.</span>
+            {student.fullName}
+          </p>
+          {isFlagged && (
+            <button
+              type="button"
+              onClick={onEditReason}
+              className="mt-0.5 ml-5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 underline decoration-dotted underline-offset-2"
+            >
+              {record?.reason ? record.reason : 'Sabab qoʻshish'}
+            </button>
+          )}
         </div>
-
-        {isFlagged && (
-          <button
-            type="button"
-            onClick={onEditReason}
-            className="text-xs font-semibold text-teal-600 dark:text-teal-400 hover:underline shrink-0"
-          >
-            {record?.reason ? 'Tahrirlash' : '+ Sabab'}
-          </button>
-        )}
       </div>
 
-      <div className="mt-2.5 grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 sm:w-64 shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 p-0.5 gap-0.5">
         {STATUS_LIST.map((st) => {
           const active = status === st.id;
           return (
@@ -63,14 +47,13 @@ export function StudentRow({
               key={st.id}
               type="button"
               onClick={() => onSelectStatus(st.id)}
-              className={`h-10 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 ${
+              className={`h-8 rounded-md text-xs font-medium transition ${
                 active
-                  ? st.pillActiveClass
-                  : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? st.activeClass
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              <span>{st.emoji}</span>
-              <span>{st.label}</span>
+              {st.label}
             </button>
           );
         })}

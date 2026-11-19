@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  AppSettings,
   AttendanceStatus,
   ClassGroup,
   ClassReport,
@@ -9,7 +8,6 @@ import {
 } from '../types';
 import { computeClassStats } from '../utils/status';
 import { buildClassTelegramReport } from '../utils/telegram';
-import { triggerHaptic } from '../utils/exportCsv';
 import { AttendanceFooter } from '../components/AttendanceFooter';
 import { AttendanceHeader, FilterMode } from '../components/AttendanceHeader';
 import { NoteModal } from '../components/NoteModal';
@@ -21,8 +19,7 @@ interface Props {
   teacher: TeacherProfile;
   date: string;
   existingReport?: ClassReport;
-  settings: AppSettings;
-  onSaveReport: (records: Record<string, StudentAttendance>, sent?: boolean) => void;
+  onSaveReport: (records: Record<string, StudentAttendance>) => void;
   onNotify: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -31,7 +28,6 @@ export function AttendanceView({
   teacher,
   date,
   existingReport,
-  settings,
   onSaveReport,
   onNotify,
 }: Props) {
@@ -52,7 +48,6 @@ export function AttendanceView({
   const stats = computeClassStats(cls, draft);
 
   const setStatus = (sid: string, status: AttendanceStatus, reason?: string) => {
-    triggerHaptic(settings.haptics, 10);
     setDraft((prev) => {
       const next = { ...prev };
       if (status === 'present') {
@@ -85,29 +80,24 @@ export function AttendanceView({
   const tgText = buildClassTelegramReport(cls, teacher, date, draft);
 
   return (
-    <div className="space-y-4 pb-36">
+    <div className="space-y-3 pb-24">
       <AttendanceHeader
-        currentClass={cls}
-        teacher={teacher}
-        date={date}
-        existingReport={existingReport}
         stats={stats}
         search={search}
         onSearchChange={setSearch}
         filter={filter}
         onFilterChange={setFilter}
         onAllPresent={() => {
-          triggerHaptic(settings.haptics, [15, 30, 15]);
           setDraft({});
-          onSaveReport({}, false);
-          onNotify(`${cls.name} sinf: barcha oʻquvchilar «Keldi» deb saqlandi!`);
+          onSaveReport({});
+          onNotify('Barcha oʻquvchilar keldi');
         }}
       />
 
-      <div className="space-y-2">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl divide-y divide-zinc-200/80 dark:divide-zinc-800 overflow-hidden">
         {students.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 text-center text-sm text-slate-500 border border-slate-200/70 dark:border-slate-800">
-            Mos oʻquvchi topilmadi
+          <div className="p-6 text-center text-sm text-zinc-500">
+            Oʻquvchi topilmadi
           </div>
         ) : (
           students.map((s, i) => (
@@ -131,13 +121,8 @@ export function AttendanceView({
 
       <AttendanceFooter
         stats={stats}
-        onSave={() => {
-          triggerHaptic(settings.haptics, 18);
-          onSaveReport(draft, existingReport?.sentToTelegram);
-          onNotify(`${cls.name} sinf davomati saqlandi`);
-        }}
         onSendTelegram={() => {
-          onSaveReport(draft, existingReport?.sentToTelegram);
+          onSaveReport(draft);
           setTgOpen(true);
         }}
       />
@@ -153,11 +138,9 @@ export function AttendanceView({
 
       <TelegramPreviewModal
         open={tgOpen}
-        title={`${cls.name} sinf davomat hisoboti`}
+        title={`${cls.name} sinf hisoboti`}
         text={tgText}
-        settings={settings}
         onClose={() => setTgOpen(false)}
-        onSentSuccess={() => onSaveReport(draft, true)}
         onNotify={onNotify}
       />
     </div>

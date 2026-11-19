@@ -18,22 +18,12 @@ export interface StudentAttendance {
 
 export interface ClassReport {
   classId: string;
-  date: string; // YYYY-MM-DD
-  submittedAt: string; // ISO string
+  date: string;
+  submittedAt: string;
   records: Record<string, StudentAttendance>;
-  sentToTelegram?: boolean;
 }
 
 export interface TeacherProfile {
   fullName: string;
   classId: string;
 }
-
-export interface AppSettings {
-  telegramBotToken: string;
-  telegramChatId: string;
-  theme: 'light' | 'dark' | 'system';
-  haptics: boolean;
-}
-
-export type TabId = 'attendance' | 'dashboard' | 'settings';

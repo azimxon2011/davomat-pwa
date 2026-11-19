@@ -1,11 +1,4 @@
-import { AppSettings, ClassGroup } from '../types';
-
-export const DEFAULT_SETTINGS: AppSettings = {
-  telegramBotToken: '',
-  telegramChatId: '',
-  theme: 'system',
-  haptics: true,
-};
+import { ClassGroup } from '../types';
 
 function makeStudents(prefix: string, names: string[]) {
   return names.map((fullName, idx) => ({ id: `${prefix}-${idx + 1}`, fullName }));

@@ -1,8 +1,7 @@
-import { Download, WifiOff } from 'lucide-react';
-
 interface AppHeaderProps {
   classNameLabel: string;
   teacherName: string;
+  dateLabel: string;
   isOnline: boolean;
   canInstall: boolean;
   onInstall: () => void;
@@ -11,31 +10,25 @@ interface AppHeaderProps {
 export function AppHeader({
   classNameLabel,
   teacherName,
+  dateLabel,
   isOnline,
   canInstall,
   onInstall,
 }: AppHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 safe-top">
-      <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <img src="/icon.svg" alt="Davomat" className="w-8 h-8 rounded-xl shadow-xs shrink-0" />
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-sm font-extrabold tracking-tight leading-none">
-                {classNameLabel} sinf
-              </h1>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-              {teacherName}
-            </p>
+    <header className="sticky top-0 z-30 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800 safe-top">
+      <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-base font-semibold tracking-tight">{classNameLabel} sinf</h1>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{dateLabel}</span>
           </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{teacherName}</p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           {!isOnline && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 text-[11px] font-bold">
-              <WifiOff className="w-3 h-3" />
+            <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
               Oflayn
             </span>
           )}
@@ -43,10 +36,9 @@ export function AppHeader({
             <button
               type="button"
               onClick={onInstall}
-              className="h-8 px-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition"
+              className="h-8 px-3 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 text-xs font-medium"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Oʻrnatish</span>
+              Oʻrnatish
             </button>
           )}
         </div>
