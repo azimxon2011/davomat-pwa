@@ -20,6 +20,7 @@ interface Props {
   date: string;
   existingReport?: ClassReport;
   excelBytes: Uint8Array | null;
+  submittedInfo: { count: number; total: number; all: boolean };
   onSaveReport: (records: Record<string, StudentAttendance>) => Promise<void>;
   onNotify: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
@@ -30,6 +31,7 @@ export function AttendanceView({
   date,
   existingReport,
   excelBytes,
+  submittedInfo,
   onSaveReport,
   onNotify,
 }: Props) {
@@ -144,6 +146,7 @@ export function AttendanceView({
         text={tgText}
         date={date}
         excelBytes={excelBytes}
+        submittedInfo={submittedInfo}
         onClose={() => setTgOpen(false)}
         onNotify={onNotify}
       />

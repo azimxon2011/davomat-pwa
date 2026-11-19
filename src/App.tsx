@@ -14,6 +14,11 @@ export function App() {
   const [teacher, setTeacher] = useLocalStorage<TeacherProfile | null>('davomat_teacher_v3', null);
   const [reports, setReports] = useLocalStorage<ClassReport[]>('davomat_reports_v3', []);
   const [excelBytes, setExcelBytes] = useState<Uint8Array | null>(null);
+  const [submittedInfo, setSubmittedInfo] = useState<{ count: number; total: number; all: boolean }>({
+    count: 0,
+    total: SEED_CLASSES.length,
+    all: false,
+  });
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const { canInstall, isOnline, installApp } = usePwaInstall();
 
@@ -50,18 +55,54 @@ export function App() {
       submittedAt: new Date().toISOString(),
       records,
     };
-    const nextReports = [
+    let nextReports = [
       ...reports.filter((r) => !(r.classId === teacherClass.id && r.date === today)),
       entry,
     ];
     setReports(nextReports);
 
+    // Sync with shared server state across all 5-11 classes
+    let allSubmitted = false;
+    let submittedCount = nextReports.filter((r) => r.date === today).length;
     try {
-      const updated = await buildUpdatedExcelBytes(SEED_CLASSES, nextReports, today);
-      setExcelBytes(updated);
-      await syncExcelToLocalDisk(updated);
+      const apiRes = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: today,
+          report: entry,
+          totalClasses: SEED_CLASSES.length,
+        }),
+      });
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        if (data?.ok && Array.isArray(data.reports)) {
+          nextReports = data.reports;
+          submittedCount = data.submittedCount;
+          allSubmitted = Boolean(data.allSubmitted);
+        }
+      }
     } catch {
-      // ignore if offline or template fetch fails
+      allSubmitted = submittedCount >= SEED_CLASSES.length;
+    }
+
+    setSubmittedInfo({
+      count: submittedCount,
+      total: SEED_CLASSES.length,
+      all: allSubmitted,
+    });
+
+    // Generate & send DAVOMAT.xlsx ONLY when all 5-11 classes are submitted
+    if (allSubmitted) {
+      try {
+        const updated = await buildUpdatedExcelBytes(SEED_CLASSES, nextReports, today);
+        setExcelBytes(updated);
+        await syncExcelToLocalDisk(updated);
+      } catch {
+        setExcelBytes(null);
+      }
+    } else {
+      setExcelBytes(null);
     }
   };
 
@@ -85,6 +126,7 @@ export function App() {
           date={today}
           existingReport={todayReport}
           excelBytes={excelBytes}
+          submittedInfo={submittedInfo}
           onSaveReport={handleSaveReport}
           onNotify={notify}
         />

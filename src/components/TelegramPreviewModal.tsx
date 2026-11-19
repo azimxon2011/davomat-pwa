@@ -9,6 +9,7 @@ interface TelegramPreviewModalProps {
   text: string;
   date: string;
   excelBytes: Uint8Array | null;
+  submittedInfo: { count: number; total: number; all: boolean };
   onClose: () => void;
   onNotify: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
@@ -19,6 +20,7 @@ export function TelegramPreviewModal({
   text,
   date,
   excelBytes,
+  submittedInfo,
   onClose,
   onNotify,
 }: TelegramPreviewModalProps) {
@@ -70,6 +72,12 @@ export function TelegramPreviewModal({
         </div>
 
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2 safe-bottom">
+          <p className="text-[11px] text-center text-zinc-500 dark:text-zinc-400">
+            {submittedInfo.all
+              ? `Barcha 5–11 sinflar topshirdi (${submittedInfo.count}/${submittedInfo.total}) — DAVOMAT.xlsx ham yuboriladi`
+              : `Topshirgan sinflar: ${submittedInfo.count}/${submittedInfo.total}. Hamma sinf tugatgach DAVOMAT.xlsx yuboriladi.`}
+          </p>
+
           {needStart && (
             <a
               href={`https://t.me/${TELEGRAM_CONFIG.botUsername}?start=1`}
