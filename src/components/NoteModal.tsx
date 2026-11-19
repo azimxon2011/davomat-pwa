@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { AttendanceStatus } from '../types';
+import { I18N, Lang } from '../utils/i18n';
 import { ABSENT_REASONS } from '../utils/status';
 
 interface NoteModalProps {
@@ -8,6 +9,7 @@ interface NoteModalProps {
   studentName: string;
   status: AttendanceStatus;
   initialReason: string;
+  lang: Lang;
   onSave: (status: AttendanceStatus, reason: string) => void;
   onClose: () => void;
 }
@@ -17,10 +19,12 @@ export function NoteModal({
   studentName,
   status,
   initialReason,
+  lang,
   onSave,
   onClose,
 }: NoteModalProps) {
   const [reason, setReason] = useState(initialReason);
+  const t = I18N[lang];
 
   useEffect(() => {
     setReason(initialReason);
@@ -43,7 +47,7 @@ export function NoteModal({
           <div className="min-w-0 pr-2">
             <h3 className="text-sm font-semibold truncate">{studentName}</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {isLate ? 'Kechikish izohi' : 'Kelmaganlik sababi'}
+              {isLate ? t.lateNoteTitle : t.absentReasonTitle}
             </p>
           </div>
           <button
@@ -85,7 +89,7 @@ export function NoteModal({
             type="text"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder={isLate ? 'Izoh yozing...' : 'Boshqa sabab...'}
+            placeholder={isLate ? t.writeNote : t.otherReason}
             className="w-full h-10 px-3 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm focus:outline-none focus:border-zinc-500"
           />
 
@@ -97,7 +101,7 @@ export function NoteModal({
             }}
             className="w-full h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold text-sm shadow-sm shadow-indigo-600/20 safe-bottom transition"
           >
-            Saqlash
+            {t.save}
           </button>
         </div>
       </div>

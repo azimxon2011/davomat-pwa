@@ -1,10 +1,12 @@
 import { AttendanceStatus, Student, StudentAttendance } from '../types';
+import { I18N, Lang } from '../utils/i18n';
 import { STATUS_LIST } from '../utils/status';
 
 interface StudentRowProps {
   student: Student;
   index: number;
   record?: StudentAttendance;
+  lang: Lang;
   onSelectStatus: (status: AttendanceStatus) => void;
   onEditReason: () => void;
 }
@@ -13,11 +15,19 @@ export function StudentRow({
   student,
   index,
   record,
+  lang,
   onSelectStatus,
   onEditReason,
 }: StudentRowProps) {
+  const t = I18N[lang];
   const status: AttendanceStatus = record?.status ?? 'present';
   const isFlagged = status !== 'present';
+
+  const statusLabels: Record<AttendanceStatus, string> = {
+    present: t.present,
+    absent: t.absent,
+    late: t.late,
+  };
 
   const rowBg =
     status === 'absent'
@@ -46,7 +56,7 @@ export function StudentRow({
                   : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
               }`}
             >
-              {record?.reason ? record.reason : '+ Sabab qoʻshish'}
+              {record?.reason ? record.reason : t.addReason}
             </button>
           )}
         </div>
@@ -66,7 +76,7 @@ export function StudentRow({
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              {st.label}
+              {statusLabels[st.id]}
             </button>
           );
         })}

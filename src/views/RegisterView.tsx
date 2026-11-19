@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { ClassGroup, TeacherProfile } from '../types';
+import { I18N, Lang } from '../utils/i18n';
 
 interface RegisterViewProps {
   classes: ClassGroup[];
+  lang: Lang;
   onRegister: (profile: TeacherProfile) => void;
 }
 
-export function RegisterView({ classes, onRegister }: RegisterViewProps) {
+export function RegisterView({ classes, lang, onRegister }: RegisterViewProps) {
   const [classId, setClassId] = useState(classes[0]?.id ?? '');
   const [fullName, setFullName] = useState(classes[0]?.curatorName ?? '');
   const [error, setError] = useState('');
+  const t = I18N[lang];
 
   const handleSelectClass = (cls: ClassGroup) => {
     const prevCurator = classes.find((c) => c.id === classId)?.curatorName;
@@ -24,11 +27,11 @@ export function RegisterView({ classes, onRegister }: RegisterViewProps) {
     e.preventDefault();
     const cleaned = fullName.trim();
     if (cleaned.length < 3) {
-      setError('Ism va familiyangizni kiriting');
+      setError(t.errName);
       return;
     }
     if (!classId) {
-      setError('Sinfingizni tanlang');
+      setError(t.errClass);
       return;
     }
     onRegister({ fullName: cleaned, classId });
@@ -42,7 +45,7 @@ export function RegisterView({ classes, onRegister }: RegisterViewProps) {
           <div>
             <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Davomat</h1>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Ism-familiyangizni kiriting va sinfni tanlang
+              {t.regSubtitle}
             </p>
           </div>
         </div>
@@ -50,7 +53,7 @@ export function RegisterView({ classes, onRegister }: RegisterViewProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">
-              Ism va familiya
+              {t.fullNameLabel}
             </label>
             <input
               type="text"
@@ -67,7 +70,7 @@ export function RegisterView({ classes, onRegister }: RegisterViewProps) {
 
           <div>
             <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">
-              Sinf
+              {t.classLabel}
             </label>
             <div className="grid grid-cols-4 gap-1.5">
               {classes.map((cls) => {
@@ -100,7 +103,7 @@ export function RegisterView({ classes, onRegister }: RegisterViewProps) {
             type="submit"
             className="w-full h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold text-sm shadow-md shadow-indigo-600/25 active:scale-[0.99] transition"
           >
-            Kirish
+            {t.enter}
           </button>
         </form>
       </div>

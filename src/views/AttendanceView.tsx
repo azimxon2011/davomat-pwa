@@ -9,6 +9,7 @@ import {
 import { computeClassStats } from '../utils/status';
 import { buildClassTelegramReport } from '../utils/telegram';
 import { AttendanceFooter } from '../components/AttendanceFooter';
+import { I18N, Lang } from '../utils/i18n';
 import { AttendanceHeader, FilterMode } from '../components/AttendanceHeader';
 import { NoteModal } from '../components/NoteModal';
 import { StudentRow } from '../components/StudentRow';
@@ -18,6 +19,7 @@ interface Props {
   cls: ClassGroup;
   teacher: TeacherProfile;
   date: string;
+  lang: Lang;
   existingReport?: ClassReport;
   excelBytes: Uint8Array | null;
   submittedInfo: { count: number; total: number; all: boolean };
@@ -29,12 +31,14 @@ export function AttendanceView({
   cls,
   teacher,
   date,
+  lang,
   existingReport,
   excelBytes,
   submittedInfo,
   onSaveReport,
   onNotify,
 }: Props) {
+  const t = I18N[lang];
   const [draft, setDraft] = useState<Record<string, StudentAttendance>>({});
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterMode>('all');
@@ -91,17 +95,18 @@ export function AttendanceView({
         onSearchChange={setSearch}
         filter={filter}
         onFilterChange={setFilter}
+        lang={lang}
         onAllPresent={() => {
           setDraft({});
           onSaveReport({});
-          onNotify('Barcha oʻquvchilar keldi');
+          onNotify(t.allPresentToast);
         }}
       />
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl divide-y divide-zinc-200/80 dark:divide-zinc-800 overflow-hidden">
         {students.length === 0 ? (
           <div className="p-6 text-center text-sm text-zinc-500">
-            Oʻquvchi topilmadi
+            {t.noStudents}
           </div>
         ) : (
           students.map((s, i) => (
@@ -110,6 +115,7 @@ export function AttendanceView({
               student={s}
               index={i}
               record={draft[s.id]}
+              lang={lang}
               onSelectStatus={(st) => handleSelectStatus(s.id, s.fullName, st)}
               onEditReason={() =>
                 setReasonTarget({
@@ -125,6 +131,7 @@ export function AttendanceView({
 
       <AttendanceFooter
         stats={stats}
+        lang={lang}
         onSendTelegram={async () => {
           await onSaveReport(draft);
           setTgOpen(true);
@@ -136,15 +143,17 @@ export function AttendanceView({
         studentName={reasonTarget?.name ?? ''}
         status={reasonTarget?.status ?? 'absent'}
         initialReason={reasonTarget ? (draft[reasonTarget.id]?.reason ?? '') : ''}
+        lang={lang}
         onSave={(st, reason) => reasonTarget && setStatus(reasonTarget.id, st, reason)}
         onClose={() => setReasonTarget(null)}
       />
 
       <TelegramPreviewModal
         open={tgOpen}
-        title={`${cls.name} sinf hisoboti`}
+        title={`${cls.name} ${t.reportTitle}`}
         text={tgText}
         date={date}
+        lang={lang}
         excelBytes={excelBytes}
         submittedInfo={submittedInfo}
         onClose={() => setTgOpen(false)}

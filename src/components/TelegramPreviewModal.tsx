@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { TELEGRAM_CONFIG } from '../config';
+import { I18N, Lang } from '../utils/i18n';
 import { sendToTelegramBot } from '../utils/telegram';
 
 interface TelegramPreviewModalProps {
@@ -8,6 +9,7 @@ interface TelegramPreviewModalProps {
   title: string;
   text: string;
   date: string;
+  lang: Lang;
   excelBytes: Uint8Array | null;
   submittedInfo: { count: number; total: number; all: boolean };
   onClose: () => void;
@@ -19,6 +21,7 @@ export function TelegramPreviewModal({
   title,
   text,
   date,
+  lang,
   excelBytes,
   submittedInfo,
   onClose,
@@ -28,6 +31,7 @@ export function TelegramPreviewModal({
   const [needStart, setNeedStart] = useState(false);
 
   if (!open) return null;
+  const t = I18N[lang];
 
   const handleBotSend = async () => {
     setSending(true);
@@ -35,13 +39,13 @@ export function TelegramPreviewModal({
     const res = await sendToTelegramBot(text, excelBytes ?? undefined, date);
     setSending(false);
     if (res.ok) {
-      onNotify('Yuborildi');
+      onNotify(t.sent);
       onClose();
     } else {
       if (res.error?.includes('/start')) {
         setNeedStart(true);
       }
-      onNotify(res.error || 'Yuborishda xatolik', 'error');
+      onNotify(res.error || t.sendError, 'error');
     }
   };
 
@@ -74,8 +78,8 @@ export function TelegramPreviewModal({
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2 safe-bottom">
           <p className="text-[11px] text-center text-zinc-500 dark:text-zinc-400">
             {submittedInfo.all
-              ? `Barcha 5–11 sinflar topshirdi (${submittedInfo.count}/${submittedInfo.total}) — DAVOMAT.xlsx ham yuboriladi`
-              : `Topshirgan sinflar: ${submittedInfo.count}/${submittedInfo.total}. Hamma sinf tugatgach DAVOMAT.xlsx yuboriladi.`}
+              ? t.allSubmittedMsg(submittedInfo.count, submittedInfo.total)
+              : t.pendingSubmittedMsg(submittedInfo.count, submittedInfo.total)}
           </p>
 
           {needStart && (
@@ -85,7 +89,7 @@ export function TelegramPreviewModal({
               rel="noopener noreferrer"
               className="w-full h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs flex items-center justify-center transition"
             >
-              1. @{TELEGRAM_CONFIG.botUsername} botiga /start bosing, keyin «Yuborish»
+              @{TELEGRAM_CONFIG.botUsername} → /start
             </a>
           )}
 
@@ -95,7 +99,7 @@ export function TelegramPreviewModal({
             onClick={handleBotSend}
             className="w-full h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold text-sm shadow-sm shadow-indigo-600/20 disabled:opacity-50 transition"
           >
-            {sending ? 'Yuborilmoqda...' : 'Yuborish'}
+            {sending ? t.sending : t.send}
           </button>
         </div>
       </div>
